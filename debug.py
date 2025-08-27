@@ -1,9 +1,9 @@
 """
-Wait 5 seconds, then right-click at a position relative to the
-currently active (foreground) window: x=400, y=220 from the window's
-top-left corner. Intended to run on Windows.
+5秒待機後、アクティブ（前面）ウィンドウの左上から
+相対座標 x=400, y=220 の位置で「左クリック」を実行します。
+Windows での実行を想定しています。
 
-No external dependencies; uses Win32 APIs via ctypes.
+外部依存はなく、ctypes 経由で Win32 API を使用します。
 """
 
 from __future__ import annotations
@@ -38,9 +38,9 @@ def main() -> int:
             ("bottom", wintypes.LONG),
         ]
 
-    # Mouse event flags
-    MOUSEEVENTF_RIGHTDOWN = 0x0008
-    MOUSEEVENTF_RIGHTUP = 0x0010
+    # マウスイベントフラグ（左クリック）
+    MOUSEEVENTF_LEFTDOWN = 0x0002
+    MOUSEEVENTF_LEFTUP = 0x0004
 
     # Wait 5 seconds
     time.sleep(5)
@@ -63,14 +63,13 @@ def main() -> int:
         print("SetCursorPos failed.")
         return 4
 
-    # Perform right-click at the current cursor position
-    user32.mouse_event(MOUSEEVENTF_RIGHTDOWN, 0, 0, 0, 0)
+    # 現在のカーソル位置で左クリックを実行
+    user32.mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0)
     time.sleep(0.05)
-    user32.mouse_event(MOUSEEVENTF_RIGHTUP, 0, 0, 0, 0)
+    user32.mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, 0)
 
     return 0
 
 
 if __name__ == "__main__":
     sys.exit(main())
-
