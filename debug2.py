@@ -1,14 +1,14 @@
 """
 5秒待機して、現在アクティブなウィンドウのスクリーンショットを
-PyAutoGUI で取得し、Windows のピクチャフォルダに capture.png として保存します。
+MSS で取得し、Windows のピクチャフォルダに capture.png として保存します。
 
 - ウィンドウ取得: PyGetWindow
-- 画面キャプチャ: PyAutoGUI
+- 画面キャプチャ: mss
 
 注意:
 - Windows を想定しています（macOS/Linuxでは終了）。
 - 複数モニタでウィンドウが負の座標にある場合、環境によっては
-  PyAutoGUIのキャプチャで失敗する可能性があります（主モニタ上でお試しください）。
+  キャプチャで失敗する可能性があります（主モニタ上でお試しください）。
 """
 
 from __future__ import annotations
@@ -76,9 +76,10 @@ def main() -> int:
 
     # 依存ライブラリ読込
     try:
-        import pyautogui
+        from mss import mss
+        from mss import tools as mss_tools
     except Exception as e:
-        print("PyAutoGUIの読み込みに失敗しました。uvでインストールしてください: uv add pyautogui")
+        print("mssの読み込みに失敗しました。uvでインストールしてください: uv add mss")
         print(f"詳細: {e}")
         return 2
 
@@ -113,11 +114,16 @@ def main() -> int:
         print("ウィンドウ座標の取得に失敗しました。")
         return 5
 
-    region = (int(left), int(top), int(width), int(height))
+    left, top, width, height = int(left), int(top), int(width), int(height)
+    if width <= 0 or height <= 0:
+        print("ウィンドウサイズが不正です。")
+        return 6
 
-    # スクリーンショット取得
+    # スクリーンショット取得（mss）
     try:
-        img = pyautogui.screenshot(region=region)
+        with mss() as sct:
+            monitor = {"left": left, "top": top, "width": width, "height": height}
+            shot = sct.grab(monitor)
     except Exception as e:
         print("スクリーンショットの取得に失敗しました。ウィンドウ位置やマルチモニタ構成を確認してください。")
         print(f"詳細: {e}")
@@ -129,7 +135,8 @@ def main() -> int:
     out_path = out_dir / "capture.png"
 
     try:
-        img.save(out_path)
+        # mss.tools.to_png で直接保存
+        mss_tools.to_png(shot.rgb, shot.size, output=str(out_path))
     except Exception as e:
         print("ファイル保存に失敗しました。権限やパスを確認してください。")
         print(f"詳細: {e}")
@@ -141,4 +148,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     sys.exit(main())
-
