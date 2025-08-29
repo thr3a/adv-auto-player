@@ -8,9 +8,9 @@ Windows での実行を想定しています。
 
 from __future__ import annotations
 
+import platform
 import sys
 import time
-import platform
 
 
 def main() -> int:

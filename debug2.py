@@ -14,14 +14,14 @@ MSS で取得し、Windows のピクチャフォルダに capture.png として�
 from __future__ import annotations
 
 import os
+import platform
 import sys
 import time
-import platform
 from pathlib import Path
 
 
 def get_pictures_dir() -> Path:
-    """Windowsの既定のピクチャフォルダを返す。
+    r"""Windowsの既定のピクチャフォルダを返す。
 
     - まず Windows の Known Folder API を試行（成功すれば最も確実）。
     - 失敗した場合は %USERPROFILE%\Pictures をフォールバックとして使用。

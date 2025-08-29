@@ -1,0 +1,69 @@
+"""OCR API クライアントおよび結果パース。"""
+
+from __future__ import annotations
+
+from collections.abc import Sequence
+from dataclasses import dataclass
+from pathlib import Path
+
+import requests
+
+
+@dataclass(frozen=True)
+class OcrParagraph:
+    """OCRで検出された段落候補。"""
+
+    text: str
+    box: tuple[int, int, int, int]  # x1, y1, x2, y2（画像内座標）
+
+
+def call_ocr_api(url: str, image_path: Path, timeout: float = 30.0) -> dict:
+    """OCR API を呼び出し、JSONを辞書で返す。
+
+    Args:
+        url: 例 ``http://deep01.local:3200/analyze?format=json``。
+        image_path: 送信する画像のパス。
+        timeout: タイムアウト秒。
+
+    Returns:
+        JSON辞書。
+    """
+    with image_path.open("rb") as f:
+        files = {"file": (image_path.name, f, "image/png")}
+        resp = requests.post(url, files=files, timeout=timeout)
+        resp.raise_for_status()
+        return resp.json()
+
+
+def extract_paragraphs(data: dict) -> list[OcrParagraph]:
+    """APIレスポンスから paragraphs を抽出して正規化。"""
+    out: list[OcrParagraph] = []
+
+    contents = data.get("content") or []
+    for page in contents:
+        # top-level paragraphs
+        for p in page.get("paragraphs", []) or []:
+            text = str(p.get("contents") or p.get("content") or "")
+            box = p.get("box") or p.get("points")
+            if not text or not box or len(box) < 4:
+                continue
+            out.append(OcrParagraph(text=text, box=tuple(map(int, box[:4]))))
+
+        # figures[].paragraphs
+        for fig in page.get("figures", []) or []:
+            for p in fig.get("paragraphs", []) or []:
+                text = str(p.get("contents") or p.get("content") or "")
+                box = p.get("box") or p.get("points")
+                if not text or not box or len(box) < 4:
+                    continue
+                out.append(OcrParagraph(text=text, box=tuple(map(int, box[:4]))))
+
+    return out
+
+
+def find_matching_paragraph(step_text: str, paragraphs: Sequence[OcrParagraph]) -> OcrParagraph | None:
+    """部分一致で ``step_text`` にマッチする段落を探す。"""
+    for p in paragraphs:
+        if step_text in p.text:
+            return p
+    return None
