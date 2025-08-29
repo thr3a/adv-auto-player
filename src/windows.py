@@ -5,15 +5,10 @@ ctypes を用いて Win32 API を直接呼び出すため、追加依存を増�
 
 from __future__ import annotations
 
-import sys
-import time
-from dataclasses import dataclass
-
-if sys.platform != "win32":  # 実行時ガード
-    raise RuntimeError("このモジュールは Windows でのみ使用できます")
-
 import ctypes
+import time
 from ctypes import wintypes
+from dataclasses import dataclass
 
 user32 = ctypes.windll.user32
 kernel32 = ctypes.windll.kernel32
