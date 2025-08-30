@@ -32,7 +32,7 @@ jobs:
       - name: Build exe with Nuitka
         run: >-
           uv run python -m nuitka
-          --standalone --onefile
+          --standalone
           --assume-yes-for-downloads
           --msvc=latest
           --output-dir=dist
@@ -45,7 +45,9 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: windows-click-x64
-          path: dist/windows-click.exe
+          name: windows-click-x64-standalone
+          path: |
+            dist/windows-click.exe
+            dist/windows-click.dist/**
           if-no-files-found: error
           retention-days: 7
