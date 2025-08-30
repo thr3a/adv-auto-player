@@ -34,9 +34,6 @@ class WindowInfo:
 
 def _resolve_window(title_part: str, logger: logging.Logger) -> WindowInfo:
     """タイトル部分一致でウィンドウを探し、前面化して情報取得。"""
-    if sys.platform != "win32":
-        raise RuntimeError("本機能は Windows でのみ動作します")
-
     # 遅延インポート（macOS 開発環境でも import 可能にするため）
     import windows  # type: ignore
 
@@ -53,9 +50,6 @@ def _resolve_window(title_part: str, logger: logging.Logger) -> WindowInfo:
 
 def _click_in_window_center_of_box(win: WindowInfo, box: tuple[int, int, int, int], logger: logging.Logger) -> None:
     """ウィンドウ画像内座標 ``box`` の中心をスクリーン座標に変換してクリック。"""
-    if sys.platform != "win32":
-        raise RuntimeError("クリック処理は Windows でのみ動作します")
-
     import windows  # type: ignore
 
     x1, y1, x2, y2 = box
