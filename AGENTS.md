@@ -6,3 +6,46 @@
 
 - 開発環境はMacOSだが本番実行はwindowsを想定している。
 - cliのオプションパースにはclickを http通信にはrequestsを使う
+
+# 概要
+
+- 依頼内容に基づき、CLI・設定読み込み・ログ・ウィンドウ操作（Windows）・キャプチャ・OCR・自動クリックを分割実装しました。
+- 実行例: uv run python src/main.py --config hoge.yml
+    - ymlの実装例は kanogi.yml にある
+- ログ: logs/YYYYMMDD-HHMMSS.log（起動ごとに新規作成、以後追記）
+- キャプチャ: capture/YYYYMMDD-HHMMSS.png（ターゲットウィンドウ全体を定期保存）
+- OCR: 設定ファイルの `ocr_url` に指定したエンドポイントへ画像をPOSTし、paragraphs候補文字列をログ出力→stepsに部分一致したらクリック
+    - APIのレスポンス例は ocr-api-response-example.json にある
+
+- 依存パッケージ: click, requests, mss, PyYAML（pyproject.tomlに追記済み）
+- 実装ファイル:
+    - src/main.py: CLIエントリ（--config）
+    - src/config.py: YAML設定読込（title/interval/steps/ocr_url）
+    - src/logger.py: 起動時刻ベースのログファイル生成
+    - src/utils.py: タイムスタンプ生成などのユーティリティ
+    - src/windows.py: Windows専用のウィンドウ検索/前面化/座標取得/クリック（ctypes）
+    - src/capture.py: mssで領域キャプチャ保存
+    - src/ocr.py: OCR API呼び出しとparagraphs抽出
+    - src/automation.py: 自動操作ループ（キャプチャ→OCR→ログ→クリック）
+- JSONパース: example.jsonの構造に合わせ、content[].paragraphs と content[].figures[].paragraphs の両方から候補文字列を抽出し、全件ログに出力します。
+
+# 処理フロー
+
+- ウィンドウ探索: title 部分一致で最初に見つかった可視ウィンドウを対象化。見つからなければ例外で終了。
+- ループ:
+    - ウィンドウを前面化し、座標を取得
+    - ウィンドウ全体をキャプチャして capture/ に保存
+    - OCR APIに画像POST→JSON取得
+    - paragraphs候補文字列をログ出力
+    - steps の先頭要素に部分一致する段落があれば、その段落の box=[x1,y1,x2,y2] 中心をスクリーン座標に変換して左クリック
+    - 1画像で1クリックのみ（次ステップは次のキャプチャで判定）
+    - steps をすべて消化したら終了
+
+# 実装上の注意
+
+- DPI対策: SetProcessDPIAware() を試行（失敗時は継続）。
+- 文字一致: 単純な部分一致（例: 「大声で驚かす」 ⊂ 「大声で驚かす！」も一致）。
+- クリック座標: キャプチャと同じウィンドウ矩形をオフセットとして用いるため、OCRのboxと整合が取れます。
+- 例外処理: 設定読込・ウィンドウ取得・OCR呼び出しで適宜例外をログに記録。OCR失敗時は待機してリトライ。
+
+```

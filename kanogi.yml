@@ -1,4 +1,5 @@
 title: 彼女たちの流儀
+ocr_url: http://deep01.local:3200/analyze?format=json
 interval: 10
 steps:
   - 幕開けをとばす
