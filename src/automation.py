@@ -7,6 +7,7 @@ import time
 from dataclasses import dataclass
 from pathlib import Path
 
+import windows
 from capture import capture_window_region
 from config import AppConfig
 from ocr import OcrParagraph, call_ocr_api, extract_paragraphs, find_matching_paragraph
@@ -33,9 +34,6 @@ class WindowInfo:
 
 def _resolve_window(title_part: str, logger: logging.Logger) -> WindowInfo:
     """タイトル部分一致でウィンドウを探し、前面化して情報取得。"""
-    # 遅延インポート（macOS 開発環境でも import 可能にするため）
-    import windows  # type: ignore
-
     hwnd = windows.find_window_by_partial_title(title_part)
     if not hwnd:
         raise RuntimeError(f"ウィンドウが見つかりません: '{title_part}'")
@@ -49,8 +47,6 @@ def _resolve_window(title_part: str, logger: logging.Logger) -> WindowInfo:
 
 def _click_in_window_center_of_box(win: WindowInfo, box: tuple[int, int, int, int], logger: logging.Logger) -> None:
     """ウィンドウ画像内座標 ``box`` の中心をスクリーン座標に変換してクリック。"""
-    import windows  # type: ignore
-
     x1, y1, x2, y2 = box
     cx = win.left + int((x1 + x2) / 2)
     cy = win.top + int((y1 + y2) / 2)
@@ -97,7 +93,6 @@ def run_automation(base_dir: Path, config: AppConfig, logger: logging.Logger) ->
         )
         logger.debug("キャプチャ保存: %s", img_path)
 
-        # OCR 呼び出し（エンドポイントは設定から取得: 必須）
         try:
             data = call_ocr_api(config.ocr_api_endpoint, img_path)
         except Exception as e:
@@ -115,7 +110,6 @@ def run_automation(base_dir: Path, config: AppConfig, logger: logging.Logger) ->
             for p in paragraphs:
                 logger.info(" - '%s' box=%s", p.text, p.box)
 
-        # 先頭の step にのみ反応（1画像で2回以上のクリックはしない）
         current = pending_steps[0]
         hit = find_matching_paragraph(current, paragraphs)
         if hit:

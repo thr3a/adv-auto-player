@@ -37,7 +37,7 @@ def setup_file_logger(base_dir: Path) -> tuple[logging.Logger, Path]:
     fh.setFormatter(formatter)
     logger.addHandler(fh)
 
-    # コンソールにも最低限の情報を出す（デバッグ容易化）
+    # コンソールにも最低限の情報を出す
     ch = logging.StreamHandler()
     ch.setLevel(logging.INFO)
     ch.setFormatter(formatter)

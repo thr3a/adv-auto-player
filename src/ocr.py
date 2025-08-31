@@ -31,7 +31,7 @@ def call_ocr_api(base_endpoint: str, image_path: Path, timeout: float = 30.0) ->
     ベースエンドポイントに対して ``/analyze?format=json`` を付与してPOSTします。
 
     Args:
-        base_endpoint: 例 ``http://deep01.local:3200``（末尾スラッシュ有無はどちらでも可）。
+        base_endpoint: 例 http://deep01.local:3200（末尾スラッシュ有無はどちらでも可）。
         image_path: 送信する画像のパス。
         timeout: タイムアウト秒。
 

@@ -13,7 +13,6 @@ from ocr import check_ocr_health
 @click.command()
 @click.option("--config", "config_path", type=click.Path(path_type=Path, exists=True, dir_okay=False), required=True, help="設定YAMLファイルのパス")
 def main(config_path: Path) -> None:
-    """テキストノベルゲームの自動操作アプリを起動する。"""
     base_dir = Path(__file__).resolve().parent.parent
     logger, logfile = setup_file_logger(base_dir)
     logger.info("ログファイル: %s", logfile)
@@ -24,7 +23,7 @@ def main(config_path: Path) -> None:
         logger.exception("設定の読み込みに失敗しました: %s", e)
         raise SystemExit(2) from e
 
-    # OCR サーバーヘルスチェック（/health が {"status": "ok"} を返すか）
+    # 起動時にOCR サーバーヘルスチェックしてNGなら終了
     if not check_ocr_health(config.ocr_api_endpoint, timeout=10.0):
         logger.error("OCRサーバーが起動していません: %s", config.ocr_api_endpoint)
         raise SystemExit(3)
