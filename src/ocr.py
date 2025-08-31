@@ -8,6 +8,8 @@ from pathlib import Path
 
 import requests
 
+from utils import normalize_text_for_matching
+
 
 @dataclass(frozen=True)
 class OcrParagraph:
@@ -85,8 +87,17 @@ def extract_paragraphs(data: dict) -> list[OcrParagraph]:
 
 
 def find_matching_paragraph(step_text: str, paragraphs: Sequence[OcrParagraph]) -> OcrParagraph | None:
-    """部分一致で ``step_text`` にマッチする段落を探す。"""
+    """部分一致で ``step_text`` にマッチする段落を探す。
+
+    照合前に双方の文字列へ名寄せ用の正規化を適用し、
+    - アルファベットの半角化
+    - 数字の半角化
+    - 全角スペースを半角スペース
+    を行った上で ``in`` 判定を行う。
+    """
+    target = normalize_text_for_matching(step_text)
     for p in paragraphs:
-        if step_text in p.text:
+        candidate = normalize_text_for_matching(p.text)
+        if target in candidate:
             return p
     return None
