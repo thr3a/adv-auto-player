@@ -67,12 +67,12 @@ def extract_paragraphs(data: dict) -> list[OcrParagraph]:
     contents = data.get("content") or []
     for page in contents:
         # top-level paragraphs
-        for p in page.get("paragraphs", []) or []:
-            text = str(p.get("contents") or p.get("content") or "")
-            box = p.get("box") or p.get("points")
-            if not text or not box or len(box) < 4:
-                continue
-            out.append(OcrParagraph(text=text, box=tuple(map(int, box[:4]))))
+        # for p in page.get("paragraphs", []) or []:
+        #     text = str(p.get("contents") or p.get("content") or "")
+        #     box = p.get("box") or p.get("points")
+        #     if not text or not box or len(box) < 4:
+        #         continue
+        #     out.append(OcrParagraph(text=text, box=tuple(map(int, box[:4]))))
 
         # figures[].paragraphs
         for fig in page.get("figures", []) or []:
