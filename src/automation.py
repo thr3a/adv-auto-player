@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import logging
-import sys
 import time
 from dataclasses import dataclass
 from pathlib import Path
@@ -71,7 +70,13 @@ def run_automation(base_dir: Path, config: AppConfig, logger: logging.Logger) ->
     win = _resolve_window(config.title, logger)
 
     pending_steps: list[str] = list(config.steps)
-    logger.info("開始: title='%s', interval=%s, steps=%s, ocr_url='%s'", config.title, config.interval, pending_steps, config.ocr_url)
+    logger.info(
+        "開始: title='%s', interval=%s, steps=%s, ocr_api_endpoint='%s'",
+        config.title,
+        config.interval,
+        pending_steps,
+        config.ocr_api_endpoint,
+    )
 
     while pending_steps:
         # 念のため毎回前面化＆位置更新
@@ -84,9 +89,9 @@ def run_automation(base_dir: Path, config: AppConfig, logger: logging.Logger) ->
         img_path = capture_window_region(base_dir, win.left, win.top, win.width, win.height)
         logger.debug("キャプチャ保存: %s", img_path)
 
-        # OCR 呼び出し（URLは設定から取得: 必須）
+        # OCR 呼び出し（エンドポイントは設定から取得: 必須）
         try:
-            data = call_ocr_api(config.ocr_url, img_path)
+            data = call_ocr_api(config.ocr_api_endpoint, img_path)
         except Exception as e:
             logger.error("OCR API 失敗: %s", e)
             time.sleep(config.interval)

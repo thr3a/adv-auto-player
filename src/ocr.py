@@ -17,22 +17,45 @@ class OcrParagraph:
     box: tuple[int, int, int, int]  # x1, y1, x2, y2（画像内座標）
 
 
-def call_ocr_api(url: str, image_path: Path, timeout: float = 30.0) -> dict:
+def _normalize_base(endpoint: str) -> str:
+    """末尾スラッシュの有無を吸収したベースURLを返す。"""
+    return endpoint.rstrip("/")
+
+
+def call_ocr_api(base_endpoint: str, image_path: Path, timeout: float = 30.0) -> dict:
     """OCR API を呼び出し、JSONを辞書で返す。
 
+    ベースエンドポイントに対して ``/analyze?format=json`` を付与してPOSTします。
+
     Args:
-        url: 例 ``http://deep01.local:3200/analyze?format=json``。
+        base_endpoint: 例 ``http://deep01.local:3200``（末尾スラッシュ有無はどちらでも可）。
         image_path: 送信する画像のパス。
         timeout: タイムアウト秒。
 
     Returns:
         JSON辞書。
     """
+    url = f"{_normalize_base(base_endpoint)}/analyze?format=json"
     with image_path.open("rb") as f:
         files = {"file": (image_path.name, f, "image/png")}
         resp = requests.post(url, files=files, timeout=timeout)
         resp.raise_for_status()
         return resp.json()
+
+
+def check_ocr_health(base_endpoint: str, timeout: float = 10.0) -> bool:
+    """ヘルスチェック: ``{base}/health`` が ``{"status": "ok"}`` を返すか判定。
+
+    ネットワーク例外やJSON不正、ステータス不一致はいずれも False を返す。
+    """
+    url = f"{_normalize_base(base_endpoint)}/health"
+    try:
+        resp = requests.get(url, timeout=timeout)
+        resp.raise_for_status()
+        data = resp.json()
+    except Exception:
+        return False
+    return isinstance(data, dict) and data.get("status") == "ok"
 
 
 def extract_paragraphs(data: dict) -> list[OcrParagraph]:

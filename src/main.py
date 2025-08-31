@@ -12,6 +12,7 @@ import click
 from automation import run_automation
 from config import AppConfig, load_config
 from logger import setup_file_logger
+from ocr import check_ocr_health
 
 
 @click.command()
@@ -27,6 +28,11 @@ def main(config_path: Path) -> None:
     except Exception as e:
         logger.exception("設定の読み込みに失敗しました: %s", e)
         raise SystemExit(2) from e
+
+    # OCR サーバーヘルスチェック（/health が {"status": "ok"} を返すか）
+    if not check_ocr_health(config.ocr_api_endpoint, timeout=10.0):
+        logger.error("OCRサーバーが起動していません: %s", config.ocr_api_endpoint)
+        raise SystemExit(3)
 
     try:
         run_automation(base_dir, config, logger)

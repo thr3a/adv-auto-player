@@ -16,13 +16,13 @@ class AppConfig:
         title: 部分一致で探す対象ウィンドウのタイトル。
         interval: キャプチャ間隔（秒）。デフォルト5秒。
         steps: クリック対象となる文字列の配列（順番に処理）。
-        ocr_url: OCR API のエンドポイントURL（必須）。
+        ocr_api_endpoint: OCR API のベースエンドポイント（例: ``http://deep01.local:3200``）。
     """
 
     title: str
     interval: int
     steps: list[str]
-    ocr_url: str
+    ocr_api_endpoint: str
 
 
 def load_config(path: Path) -> AppConfig:
@@ -47,12 +47,12 @@ def load_config(path: Path) -> AppConfig:
         raise ValueError("設定 'steps' は配列である必要があります")
     steps = [str(s) for s in steps_raw]
 
-    # OCR API のURLは必須（デフォルト無し）
-    ocr_url_raw = data.get("ocr_url")
-    if ocr_url_raw is None:
-        raise ValueError("設定 'ocr_url' が未指定です（必須）")
-    ocr_url = str(ocr_url_raw).strip()
-    if not ocr_url:
-        raise ValueError("設定 'ocr_url' が空文字です（必須）")
+    # OCR API のベースエンドポイントは必須（デフォルト無し）
+    endpoint_raw = data.get("ocr_api_endpoint")
+    if endpoint_raw is None:
+        raise ValueError("設定 'ocr_api_endpoint' が未指定です（必須）")
+    endpoint = str(endpoint_raw).strip()
+    if not endpoint:
+        raise ValueError("設定 'ocr_api_endpoint' が空文字です（必須）")
 
-    return AppConfig(title=title, interval=interval, steps=steps, ocr_url=ocr_url)
+    return AppConfig(title=title, interval=interval, steps=steps, ocr_api_endpoint=endpoint)
