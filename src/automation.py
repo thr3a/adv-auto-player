@@ -71,11 +71,12 @@ def run_automation(base_dir: Path, config: AppConfig, logger: logging.Logger) ->
 
     pending_steps: list[str] = list(config.steps)
     logger.info(
-        "開始: title='%s', interval=%s, steps=%s, ocr_api_endpoint='%s'",
+        "開始: title='%s', interval=%s, steps=%s, ocr_api_endpoint='%s', keep_height=%s",
         config.title,
         config.interval,
         pending_steps,
         config.ocr_api_endpoint,
+        config.capture_keep_height,
     )
 
     while pending_steps:
@@ -86,7 +87,14 @@ def run_automation(base_dir: Path, config: AppConfig, logger: logging.Logger) ->
             logger.error("ウィンドウ取得に失敗: %s", e)
             raise
 
-        img_path = capture_window_region(base_dir, win.left, win.top, win.width, win.height)
+        img_path = capture_window_region(
+            base_dir,
+            win.left,
+            win.top,
+            win.width,
+            win.height,
+            keep_height=config.capture_keep_height,
+        )
         logger.debug("キャプチャ保存: %s", img_path)
 
         # OCR 呼び出し（エンドポイントは設定から取得: 必須）
