@@ -15,7 +15,7 @@
     - ymlの実装例は kanogi.yml にある
 - ログ: logs/YYYYMMDD-HHMMSS.log（起動ごとに新規作成、以後追記）
 - キャプチャ: capture/YYYYMMDD-HHMMSS.png（ターゲットウィンドウを定期保存。任意で上部のみ）
-- OCR: 設定ファイルの `ocr_api_endpoint`（例: `http://deep01.local:3200`）に対して、コード側で固定のパス `/analyze?format=json` を付与して画像をPOST。paragraphs候補文字列をログ出力→stepsに部分一致したらクリック
+- OCR: 設定ファイルの `ocr_api_endpoint`（例: `http://deep01.local:3200`）に対して、コード側で固定のパス `/analyze?format=json` を付与して画像をPOST。words の候補文字列をログ出力→stepsに部分一致したらクリック
     - APIのレスポンス例は ocr-api-response-example.json にある
 
 - 依存パッケージ: click, requests, mss, PyYAML（pyproject.tomlに追記済み）
@@ -26,9 +26,9 @@
     - src/utils.py: タイムスタンプ生成などのユーティリティ
     - src/windows.py: Windows専用のウィンドウ検索/前面化/座標取得/クリック（ctypes）
     - src/capture.py: mssで領域キャプチャ保存（上部のみ残すオプション対応）
-    - src/ocr.py: OCR API呼び出しとparagraphs抽出
+    - src/ocr.py: OCR API呼び出しと words 抽出
     - src/automation.py: 自動操作ループ（キャプチャ→OCR→ログ→クリック）
-- JSONパース: example.jsonの構造に合わせ、content[].paragraphs と content[].figures[].paragraphs の両方から候補文字列を抽出し、全件ログに出力します。
+- JSONパース: ocr-api-response-example.json の構造に合わせ、content[].words のみから候補文字列を抽出し、全件ログに出力します（paragraphs ではなく words を採用）。
 
 # 処理フロー
 
@@ -38,8 +38,8 @@
     - ウィンドウを前面化し、座標を取得
     - ウィンドウをキャプチャして capture/ に保存（必要に応じて上部のみ）
     - OCR APIに画像POST→JSON取得
-    - paragraphs候補文字列をログ出力
-    - steps の先頭要素に部分一致する段落があれば、その段落の box=[x1,y1,x2,y2] 中心をスクリーン座標に変換して左クリック
+    - words の候補文字列をログ出力
+    - steps の先頭要素に部分一致する候補があれば、その box=[x1,y1,x2,y2] 中心をスクリーン座標に変換して左クリック
     - 1画像で1クリックのみ（次ステップは次のキャプチャで判定）
     - steps をすべて消化したら終了
 
