@@ -169,7 +169,7 @@ wheels = [
 ]
 
 [[package]]
-name = "windows-click"
+name = "adv-auto-player"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
