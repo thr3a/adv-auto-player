@@ -122,10 +122,8 @@ def run_automation(base_dir: Path, config: AppConfig, logger: logging.Logger) ->
             logger.info("一致: step='%s' -> クリック実行", current)
             _click_in_window_center_of_box(win, hit.box, logger)
             pending_steps.pop(0)
-            # 次のステップへ。ただし次回キャプチャまで少し待つ
-            time.sleep(max(0.3, min(1.0, config.interval / 10)))
         else:
             logger.debug("未一致: step='%s'", current)
-            time.sleep(config.interval)
+        time.sleep(config.interval)
 
     logger.info("全てのステップが完了しました。終了します。")
