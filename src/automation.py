@@ -109,9 +109,9 @@ def run_automation(base_dir: Path, config: AppConfig, logger: logging.Logger) ->
 
         # 候補をログに出す（デバッグ目的）
         if not paragraphs:
-            logger.info("OCR paragraphs: 0件")
+            logger.info("OCR words: 0件")
         else:
-            logger.info("OCR paragraphs (%d件):", len(paragraphs))
+            logger.info("OCR words (%d件):", len(paragraphs))
             for p in paragraphs:
                 logger.info(" - '%s' box=%s", p.text, p.box)
 
