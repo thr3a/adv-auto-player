@@ -1,6 +1,6 @@
 """共通ユーティリティ関数群。
 
-Python 3.12 対応。型注釈と日本語docstringを付与。
+型注釈と日本語docstringを付与。
 """
 
 from __future__ import annotations

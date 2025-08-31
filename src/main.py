@@ -1,8 +1,3 @@
-"""CLI エントリポイント。
-
-実行例: ``uv run python src/main.py --config hoge.yml``
-"""
-
 from __future__ import annotations
 
 from pathlib import Path

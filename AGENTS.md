@@ -6,6 +6,7 @@
 
 - 開発環境はMacOSだが本番実行はwindowsを想定している。
 - cliのオプションパースにはclickを http通信にはrequestsを使う
+- 仕様変更後はAGENTS.mdの中身も書き換えること。
 
 # 概要
 
@@ -14,13 +15,13 @@
     - ymlの実装例は kanogi.yml にある
 - ログ: logs/YYYYMMDD-HHMMSS.log（起動ごとに新規作成、以後追記）
 - キャプチャ: capture/YYYYMMDD-HHMMSS.png（ターゲットウィンドウ全体を定期保存）
-- OCR: 設定ファイルの `ocr_url` に指定したエンドポイントへ画像をPOSTし、paragraphs候補文字列をログ出力→stepsに部分一致したらクリック
+- OCR: 設定ファイルの `ocr_api_endpoint`（例: `http://deep01.local:3200`）に対して、コード側で固定のパス `/analyze?format=json` を付与して画像をPOST。paragraphs候補文字列をログ出力→stepsに部分一致したらクリック
     - APIのレスポンス例は ocr-api-response-example.json にある
 
 - 依存パッケージ: click, requests, mss, PyYAML（pyproject.tomlに追記済み）
 - 実装ファイル:
     - src/main.py: CLIエントリ（--config）
-    - src/config.py: YAML設定読込（title/interval/steps/ocr_url）
+    - src/config.py: YAML設定読込（title/interval/steps/ocr_api_endpoint）
     - src/logger.py: 起動時刻ベースのログファイル生成
     - src/utils.py: タイムスタンプ生成などのユーティリティ
     - src/windows.py: Windows専用のウィンドウ検索/前面化/座標取得/クリック（ctypes）
@@ -31,6 +32,7 @@
 
 # 処理フロー
 
+- `GET {ocr_api_endpoint}/health` を `timeout=10秒` で実行し、`{"status": "ok"}` が取得できた場合のみ続行
 - ウィンドウ探索: title 部分一致で最初に見つかった可視ウィンドウを対象化。見つからなければ例外で終了。
 - ループ:
     - ウィンドウを前面化し、座標を取得
@@ -47,5 +49,3 @@
 - 文字一致: 単純な部分一致（例: 「大声で驚かす」 ⊂ 「大声で驚かす！」も一致）。
 - クリック座標: キャプチャと同じウィンドウ矩形をオフセットとして用いるため、OCRのboxと整合が取れます。
 - 例外処理: 設定読込・ウィンドウ取得・OCR呼び出しで適宜例外をログに記録。OCR失敗時は待機してリトライ。
-
-```
