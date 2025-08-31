@@ -17,12 +17,15 @@ class AppConfig:
         interval: キャプチャ間隔（秒）。デフォルト5秒。
         steps: クリック対象となる文字列の配列（順番に処理）。
         ocr_api_endpoint: OCR API のベースエンドポイント（例: ``http://deep01.local:3200``）。
+        capture_keep_height: 任意。ウィンドウ上部からこのピクセル数だけを残して
+            キャプチャ・OCR 対象にする。未指定または 1 未満なら無効（全体）。
     """
 
     title: str
     interval: int
     steps: list[str]
     ocr_api_endpoint: str
+    capture_keep_height: int | None
 
 
 def load_config(path: Path) -> AppConfig:
@@ -55,4 +58,20 @@ def load_config(path: Path) -> AppConfig:
     if not endpoint:
         raise ValueError("設定 'ocr_api_endpoint' が空文字です（必須）")
 
-    return AppConfig(title=title, interval=interval, steps=steps, ocr_api_endpoint=endpoint)
+    # 任意: 上部の残存高さ（ピクセル）。未指定または不正値は None。
+    keep_raw = data.get("capture_keep_height")
+    keep: int | None
+    try:
+        keep = int(keep_raw) if keep_raw is not None else None
+    except Exception:
+        keep = None
+    if keep is not None and keep < 1:
+        keep = None
+
+    return AppConfig(
+        title=title,
+        interval=interval,
+        steps=steps,
+        ocr_api_endpoint=endpoint,
+        capture_keep_height=keep,
+    )
